@@ -1,755 +1,615 @@
 <?php
-// $Id$
-/*error_reporting(E_ALL);
-ini_set('display_errors', TRUE);
-ini_set('display_startup_errors', TRUE);*/
-require_once 'general_deletion.inc';
-require_once 'email.inc';
-/**
- * Implementation of hook_menu().
- */
-function scilab_case_study_menu()
+
+use Drupal\Core\Database\Database;
+use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\user\Entity\User;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
+
+
+function scilab_case_study_mail($key, &$message, $params)
 {
-    $items = array();
-    /* PROPOSAL */
-    $items['case-study-project/add-project-title'] = array(
-        'title' => 'Add new project titles',
-        'description' => 'Add new project titles',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-            'add_project_title_form',
-        ),
-        'access arguments' => array(
-            'Case Study add project titles',
-        ),
-        'type' => MENU_NORMAL_ITEM,
-        'file' => 'add_project_titles.inc',
-    );
-    $items['case-study-project/proposal'] = array(
-        'title' => 'Case Study Proposal Form',
-        'description' => 'Case Study Proposal Form',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-            'scilab_case_study_proposal_form',
-        ),
-        'access arguments' => array(
-            'Case Study create proposal',
-        ),
-        'type' => MENU_NORMAL_ITEM,
-        'file' => 'proposal.inc',
-    );
-    $items['case-study-project/manage-proposal'] = array(
-        'title' => 'Manage Case Study Proposals',
-        'description' => 'Manage Case Study Proposals',
-        'page callback' => 'scilab_case_study_proposal_pending',
-        'access callback' => 'user_access',
-        'access arguments' => array(
-            'Case Study manage proposal',
-        ),
-        'file' => 'manage_proposal.inc',
-    );
-    $items['case-study-project/manage-proposal/pending'] = array(
-        'title' => 'Pending Proposals',
-        'description' => 'Pending Case Study Proposals Queue',
-        'page callback' => 'scilab_case_study_proposal_pending',
-        'access callback' => 'user_access',
-        'access arguments' => array(
-            'Case Study manage proposal',
-        ),
-        'type' => MENU_DEFAULT_LOCAL_TASK,
-        'weight' => 1,
-        'file' => 'manage_proposal.inc',
-    );
-    $items['case-study-project/manage-proposal/all'] = array(
-        'title' => 'All Proposals',
-        'description' => 'All Proposals',
-        'page callback' => 'scilab_case_study_proposal_all',
-        'access callback' => 'user_access',
-        'access arguments' => array(
-            'Case Study manage proposal',
-        ),
-        'type' => MENU_LOCAL_TASK,
-        'weight' => 4,
-        'file' => 'manage_proposal.inc',
-    );
-    $items['case-study-project/manage-proposal/edit-upload-file'] = array(
-        'title' => 'Edit code files',
-        'description' => 'Edit code files',
-        'page callback' => 'scilab_case_study_proposal_edit_file_all',
-        'access callback' => 'user_access',
-        'access arguments' => array(
-            'Case Study manage proposal',
-        ),
-        'type' => MENU_LOCAL_TASK,
-        'weight' => 4,
-        'file' => 'manage_proposal.inc',
-    );
-    $items['case-study-project/manage-proposal/approve'] = array(
-        'title' => 'Approve Proposal',
-        'description' => 'Approve Proposal',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-            'scilab_case_study_proposal_approval_form',
-        ),
-        'access arguments' => array(
-            'Case Study manage proposal',
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'manage_proposal.inc',
-    );
-    $items['case-study-project/manage-proposal/edit'] = array(
-        'title' => 'Edit Proposal',
-        'description' => 'Edit Proposal',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-            'scilab_case_study_proposal_edit_form',
-        ),
-        'access arguments' => array(
-            'Case Study manage proposal',
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'manage_proposal.inc',
-    );
-    $items['case-study-project/manage-proposal/send-reminder-mail'] = array(
-        'title' => 'Send Reminder to Contriubutor about Proposal Completion Date',
-        'description' => 'Send Reminder to Contriubutor about Proposal Completion Date',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-            'scilab_case_study_proposal_send_reminder_mail_form',
-        ),
-        'access arguments' => array(
-            'Case Study manage proposal',
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'manage_proposal.inc',
-    );
-    $items['case-study-project/manage-proposal/status'] = array(
-        'title' => 'Proposal Status',
-        'description' => 'Proposal Status',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-            'scilab_case_study_proposal_status_form',
-        ),
-        'access arguments' => array(
-            'Case Study approve proposal',
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'manage_proposal.inc',
-    );
-    $items['case-study-project/abstract-approval/bulk'] = array(
-        'title' => 'Manage Case Study Submissions',
-        'description' => 'Manage Case Study Submissions',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-            'scilab_case_study_abstract_bulk_approval_form',
-        ),
-        'access arguments' => array(
-            'Case Study bulk manage abstract',
-        ),
-        'type' => MENU_LOCAL_TASK,
-        'weight' => 2,
-        'file' => 'abstract_bulk_approval.inc',
-    );
-    /* CODE UPLOAD */
-    $items['case-study-project/abstract-code/edit-upload-files'] = array(
-        'title' => 'Case Study Project Directory edit uploaded files for proposal',
-        'description' => 'Project Edit Upload',
-        'page callback' => 'drupal_get_form',
-        'access callback' => 'user_access',
-        'page arguments' => array(
-            'scilab_case_study_edit_upload_abstract_code_form',
-        ),
-        'access arguments' => array(
-            'Case Study upload abstract',
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'upload_code.inc',
-        'weight' => 2,
-    );
-    $items['case-study-project/abstract-code'] = array(
-        'title' => 'Case Study Submission',
-        'description' => 'Abstract Submission',
-        'page callback' => 'scilab_case_study_abstract',
-        'access callback' => 'user_access',
-        'access arguments' => array(
-            'Case Study upload abstract',
-        ),
-        'file' => 'upload_code.inc',
-    );
-    $items['case-study-project/abstract-code/upload'] = array(
-        'title' => 'Case Study Submission',
-        'description' => 'Project Upload',
-        'page callback' => 'drupal_get_form',
-        'access callback' => 'user_access',
-        'page arguments' => array(
-            'scilab_case_study_upload_abstract_code_form',
-        ),
-        'access arguments' => array(
-            'Case Study upload abstract',
-        ),
-        'type' => MENU_LOCAL_TASK,
-        'file' => 'upload_code.inc',
-        'weight' => 2,
-    );
-    $items['case-study-project/abstract-code/delete'] = array(
-        'title' => 'Delete Solution',
-        'description' => 'Delete Solution',
-        'page callback' => 'scilab_case_study_upload_code_delete',
-        'access arguments' => array(
-            'Case Study upload code',
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'upload_code_delete.inc',
-    );
-    /* CODE DOWNLOADS */
-    $items['case-study-project/full-download/project'] = array(
-        'title' => 'Code Download',
-        'description' => 'Code Download',
-        'page callback' => 'scilab_case_study_download_full_project',
-        'access arguments' => array(
-            'Case Study download code',
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'full_download.inc',
-    );
-    /* COMPLETED  Case studies */
-    $items['case-study-project/completed-case-studies'] = array(
-        'title' => 'Completed Case studies',
-        'page callback' => 'scilab_case_study_completed_proposals_all',
-        'access arguments' => array(
-            'Case Study download code',
-        ),
-        'file' => 'scilab_case_study_details.inc',
-    );
-    /* LABS IN PROGRESS */
-    $items['case-study-project/case-study-progress'] = array(
-        'title' => 'Case studies in Progress',
-        'page callback' => 'scilab_case_study_progress_all',
-        'access arguments' => array(
-            'Case Study download code',
-        ),
-        'file' => 'scilab_case_study_details.inc',
-    );
-    $items['case-study-project/list-of-project-titles'] = array(
-        'title' => 'List of available Project titles',
-        'page callback' => 'list_of_available_project_titles',
-        'access arguments' => array(
-            'Case Study Project titles list',
-        ),
-        'file' => 'available_project_titles_list.inc',
-    );
-    /* DOWNLOAD FOR EVERYONE */
-    $items['case-study-project/case-study-run'] = array(
-        'title' => 'Download Codes',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-            'scilab_case_study_run_form',
-        ),
-        'access arguments' => array(
-            'Case Study download code',
-        ),
-        'type' => MENU_NORMAL_ITEM,
-        'file' => 'run.inc',
-    );
-    $items['case-study-project/download/final-report'] = array(
-        'title' => 'Download Final Report',
-        'description' => 'Download Final Report',
-        'page callback' => 'scilab_case_study_download_final_report',
-        'access arguments' => array(
-            'download code',
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'download.inc',
-    );
-    $items['case-study-project/download/project-title-file'] = array(
-        'title' => 'Download Project Title file',
-        'description' => 'Download Project Title file',
-        'page callback' => 'download_case_study_project_title_files',
-        'access arguments' => array(
-            'download code',
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'available_project_titles_list.inc',
-    );
-    $items['case-study-project/download/proposal-abstract'] = array(
-        'title' => 'Download Abstract',
-        'description' => 'Download Abstract',
-        'page callback' => 'download_proposal_abstract',
-        'access arguments' => array(
-            'download code',
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'download.inc',
-    );
-    /* ADMIN SETTINGS */
-    $items['admin/settings/case-study'] = array(
-        'title' => 'Case Study Settings',
-        'description' => 'Case Study Settings',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-            'scilab_case_study_settings_form',
-        ),
-        'access arguments' => array(
-            'administer Case Study',
-        ),
-        'type' => MENU_NORMAL_ITEM,
-        'file' => 'settings.inc',
-    );
-    /* AJAX REQUEST */
-    $items['case-study-project/certificates'] = array(
-        'title' => 'List of Case Study Certificates',
-        'description' => 'List of Case Study Certificates',
-        'page callback' => '_list_case_study_certificates',
-        'access arguments' => array(
-            'list Case Study certificates',
-        ),
-        'file' => 'pdf/list_case_study_certificate.inc',
-    );
-    $items['case-study-project/certificates/generate-pdf'] = array(
-        'title' => 'Download Certificate',
-        'description' => 'Download Certificate',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-            'generate_pdf',
-        ),
-        'type' => MENU_CALLBACK,
-        'access arguments' => array(
-            'generate pdf',
-        ),
-        'file' => 'pdf/cert_new.inc',
-    );
-    /*$items['case-study-project/certificates-custom'] = array(
-    'title'=> 'List of Case Study Custom Certificates',
-    'description'=> 'List of Case Study Custom Certificates',
-    'page callback'=> '_list_scilab_case_study_custom_certificates',
-    'access arguments'=> array(
-    'list Case Study custom certificates'
+    $user = \Drupal::currentUser();
+    $language = $message['language'];
+    
+    //$language = user_preferred_language($user);
+    switch ($key) {
+        case 'case_study_proposal_received':
+  // Initialize data.
+  $query = Database::getConnection()->select('case_study_proposal', 'csp');
+  $query->fields('csp');
+  $query->condition('id', $params['case_study_proposal_received']['result1']);
+  $query->range(0, 1);
+  $proposal_data = $query->execute()->fetchObject();
+
+  $user = User::load($params['case_study_proposal_received']['user_id']);
+  $message['headers'] = $params['case_study_proposal_received']['headers'];
+
+  // Load site name from config.
+  $site_name = \Drupal::config('system.site')->get('name') ?? '';
+
+  // Set message subject.
+  $message['subject'] = t('[@site_name][Case Study Project] Your Case Study Project proposal has been received',
+    ['@site_name' => $site_name]
+  );
+
+  // Set message body.
+  $message['body'] = [
+    'body' => t(
+      'Dear @contributor_name,
+
+We have received your Case Study Project proposal with the following details:
+
+Full Name: @name_title @contributor_name
+Email: @user_mail
+University/Institute: @university
+City: @city
+State: @state
+Country: @country
+Project Title: @project_title
+Date of Proposal: @creation_date
+Expected Date of Completion: @expected_date
+
+Your proposal is under review. You will soon receive an email when it has been approved/disapproved.
+
+Best Wishes,
+@site_name Team,
+FOSSEE, IIT Bombay',
+      [
+        '@contributor_name' => $proposal_data->contributor_name ?? '',
+        '@name_title' => $proposal_data->name_title ?? '',
+        '@user_mail' => $user->getEmail() ?? '',
+        '@university' => $proposal_data->university ?? '',
+        '@city' => $proposal_data->city ?? '',
+        '@state' => $proposal_data->state ?? '',
+        '@country' => $proposal_data->country ?? '',
+        '@project_title' => $proposal_data->project_title ?? '',
+        '@creation_date' => \Drupal::service('date.formatter')->format($proposal_data->creation_date ?? 0, 'custom', 'd/m/Y'),
+        '@expected_date' => \Drupal::service('date.formatter')->format($proposal_data->expected_date_of_completion ?? 0, 'custom', 'd/m/Y'),
+        '@site_name' => $site_name,
+      ]
     ),
-    'file'=> 'pdf/list_mentor_certificates.inc'
-    );
-    $items['case-study-project/certificates-custom/pdf'] = array(
-    'title'=> 'Download Certificate',
-    'description'=> 'Download Certificate',
-    'page callback'=> 'drupal_get_form',
-    'page arguments'=> array(
-    'generate_pdf'
-    ),
-    'type'=> MENU_CALLBACK,
-    'access arguments'=> array(
-    'generate pdf'
-    ),
-    'file'=> 'pdf/mentor_cert_pdf.inc'
-    ); */
-    $items['case-study-project/certificates/verify'] = array(
-        "title" => "Certificate Verification",
-        "page callback" => "verify_certificates",
-        'page arguments' => array(
-            'verify_certificates',
-        ),
-        "access arguments" => array(
-            "verify certificates",
-        ),
-        'type' => MENU_CALLBACK,
-        'file' => 'pdf/verify_certificates.inc',
-    );
-    return $items;
-}
-/**
- * Implementation of hook_perm().
- */
-function scilab_case_study_permission()
-{
-    return array(
-        'Case Study add project titles' => array(
-            'title' => t('Case Study add project titles'),
-            'restrict access' => true,
-        ),
-        'Case Study create proposal' => array(
-            'title' => t('Case Study create proposal'),
-            'restrict access' => true,
-        ),
-        'Case Study manage proposal' => array(
-            'title' => t('Case Study manage proposal'),
-            'restrict access' => true,
-        ),
-        'Case Study edit proposal' => array(
-            'title' => t('Case Study edit proposal'),
-            'restrict access' => true,
-        ),
-        'Case Study approve proposal' => array(
-            'title' => t('Case Study approve proposal'),
-            'restrict access' => true,
-        ),
-        'Case Study propose solution' => array(
-            'title' => t('Case Study propose solution'),
-            'restrict access' => true,
-        ),
-        'Case Study Project titles list' => array(
-            'title' => t('Case Study Project titles list'),
-            'restrict access' => true,
-        ),
-        'Case Study approve abstract' => array(
-            'title' => t('Case Study approve code'),
-            'restrict access' => true,
-        ),
-        'Case Study bulk manage abstract' => array(
-            'title' => t('Case Study bulk manage abstract'),
-            'restrict access' => true,
-        ),
-        'Case Study bulk delete abstract' => array(
-            'title' => t('Case Study bulk delete code'),
-            'restrict access' => true,
-        ),
-        'Case Study upload abstract' => array(
-            'title' => t('Case Study upload code'),
-            'restrict access' => true,
-        ),
-        'Case Study download code' => array(
-            'title' => t('Case Study download code'),
-            'restrict access' => true,
-        ),
-        'administer Case Study' => array(
-            'title' => t('administer Case Study'),
-            'restrict access' => true,
-        ),
-        'Case Study generate abstract' => array(
-            'title' => t('Case Study generate abstract'),
-            'restrict access' => true,
-        ),
-        "list Case Study certificates" => array(
-            "title" => t("list the certificates"),
-            "description" => t("list the certificates"),
-            'restrict access' => true,
-        ),
-        "list Case Study custom certificates" => array(
-            "title" => t("list the mentor certificates"),
-            "description" => t("list the mentor certificates"),
-            'restrict access' => true,
-        ),
-        "verify certificates" => array(
-            "title" => t("verify the certificates"),
-            "description" => t("verify the certificates"),
-            'restrict access' => true,
-        ),
+  ];
 
-    );
-}
-/*************************** VALIDATION FUNCTIONS *****************************/
-function scilab_case_study_check_valid_filename($file_name)
-{
-    if (!preg_match('/^[0-9a-zA-Z\.\_]+$/', $file_name)) {
-        return false;
-    } else if (substr_count($file_name, ".") > 1) {
-        return false;
-    } else {
-        return true;
-    }
+  break;
+        case 'case_study_proposal_disapproved':
+            /* initializing data */
+            $site_name = \Drupal::config('system.site')->get('name') ?? '';
 
-}
-function scilab_case_study_check_name($name = '')
-{
-    if (!preg_match('/^[0-9a-zA-Z\ ]+$/', $name)) {
-        return false;
-    } else {
-        return true;
-    }
+// Database query to fetch proposal data
+$query = Database::getConnection()->select('case_study_proposal', 'csp');
+$query->fields('csp');
+$query->condition('id', $params['case_study_proposal_disapproved']['proposal_id']);
+$query->range(0, 1);
+$proposal_data = $query->execute()->fetchObject();
 
-}
-function scilab_case_study_check_code_number($number = '')
-{
-    if (!preg_match('/^[0-9]+$/', $number)) {
-        return false;
-    } else {
-        return true;
-    }
+// Load user data
+$user_data = User::load($params['case_study_proposal_disapproved']['user_id']);
 
-}
-function scilab_case_study_path()
-{
-    return $_SERVER['DOCUMENT_ROOT'] . base_path() . 'case_study_uploads/';
-}
-/************************* USER VERIFICATION FUNCTIONS ************************/
-function scilab_case_study_get_proposal()
-{
-    global $user;
-    $query = db_select('case_study_proposal');
-    $query->fields('case_study_proposal');
-    $query->condition('uid', $user->uid);
-    $query->orderBy('id', 'DESC');
-    $query->range(0, 1);
-    $proposal_q = $query->execute();
-    $proposal_data = $proposal_q->fetchObject();
-    if (!$proposal_data) {
-        drupal_set_message("You do not have any approved  Case Study proposal. Please propose a Case Study", 'error');
-        drupal_goto('');
-    } //!$proposal_data
-    switch ($proposal_data->approval_status) {
-        case 0:
-            drupal_set_message(t('Proposal is awaiting approval.'), 'status');
-            return false;
-        case 1:
-            return $proposal_data;
-        case 2:
-            drupal_set_message(t('Proposal has been dis-approved.'), 'error');
-            return false;
-        case 3:
-            drupal_set_message(t('Proposal has been marked as completed.'), 'status');
-            return false;
-        default:
-            drupal_set_message(t('Invalid proposal state. Please contact site administrator for further information.'), 'error');
-            return false;
-    } //$proposal_data->approval_status
-    return false;
-}
-/*************************************************************************/
-/***** Function To convert only first charater of string in uppercase ****/
-/*************************************************************************/
-/*function ucname($string)
-{
-$string = ucwords(strtolower($string));
-foreach (array(
-'-',
-'\''
-) as $delimiter)
-{
-if (strpos($string, $delimiter) !== false)
-{
-$string = implode($delimiter, array_map('ucfirst', explode($delimiter, $string)));
-} //strpos($string, $delimiter) !== false
-} //array( '-', '\'') as $delimiter
-return $string;
-}*/
-function _cs_sentence_case($string)
-{
-    $string = ucwords(strtolower($string));
-    foreach (array(
-        '-',
-        '\'',
-    ) as $delimiter) {
-        if (strpos($string, $delimiter) !== false) {
-            $string = implode($delimiter, array_map('ucfirst', explode($delimiter, $string)));
-        } //strpos($string, $delimiter) !== false
-    } //array( '-', '\'') as $delimiter
-    return $string;
-}
-function _cs_list_of_states()
-{
-    $states = array(
-        0 => '-Select-',
-    );
-    $query = db_select('list_states_of_india');
-    $query->fields('list_states_of_india');
-    //$query->orderBy('', '');
-    $states_list = $query->execute();
-    while ($states_list_data = $states_list->fetchObject()) {
-        $states[$states_list_data->state] = $states_list_data->state;
-    } //$states_list_data = $states_list->fetchObject()
-    return $states;
-}
-function _cs_list_of_cities()
-{
-    $city = array(
-        0 => '-Select-',
-    );
-    $query = db_select('list_cities_of_india');
-    $query->fields('list_cities_of_india');
-    $query->orderBy('city', 'ASC');
-    $city_list = $query->execute();
-    while ($city_list_data = $city_list->fetchObject()) {
-        $city[$city_list_data->city] = $city_list_data->city;
-    } //$city_list_data = $city_list->fetchObject()
-    return $city;
-}
-function _cs_list_of_pincodes()
-{
-    $pincode = array(
-        0 => '-Select-',
-    );
-    $query = db_select('list_of_all_india_pincode');
-    $query->fields('list_of_all_india_pincode');
-    $query->orderBy('pincode', 'ASC');
-    $pincode_list = $query->execute();
-    while ($pincode_list_data = $pincode_list->fetchObject()) {
-        $pincode[$pincode_list_data->pincode] = $pincode_list_data->pincode;
-    } //$pincode_list_data = $pincode_list->fetchObject()
-    return $pincode;
-}
-function _cs_list_of_departments()
-{
-    $department = array();
-    $query = db_select('list_of_departments');
-    $query->fields('list_of_departments');
-    $query->orderBy('id', 'DESC');
-    $department_list = $query->execute();
-    while ($department_list_data = $department_list->fetchObject()) {
-        $department[$department_list_data->department] = $department_list_data->department;
-    } //$department_list_data = $department_list->fetchObject()
-    return $department;
-}
+// Prepare message headers
+$message['headers'] = $params['case_study_proposal_disapproved']['headers'];
 
-function _cs_list_of_case_studies()
-{
-    $existing_case_studies = array();
-    $result = db_query("SELECT * from list_of_project_titles WHERE {project_title_name} NOT IN( SELECT  project_title from case_study_proposal WHERE approval_status = 0 OR approval_status = 1 OR approval_status = 3)");
-    while ($case_study_list_data = $result->fetchObject()) {
-        $existing_case_studies[$case_study_list_data->project_title_name] = $case_study_list_data->project_title_name;
-    }
-    return $existing_case_studies;
-}
+// Set message subject with translation
+$message['subject'] = t('[@site_name][Case Study Project] Your Case Study Project proposal has been disapproved',
+  ['@site_name' => $site_name]
+);
 
-function _cs_list_of_versions(){
-    $versions = array();
-    $query = db_select('case_study_software_version');
-    $query->fields('case_study_software_version');
-    $version_list = $query->execute();
-    while($version_data = $version_list->fetchObject()){
-        $versions[$version_data->id] = $version_data->case_study_version;
-    }
-    return $versions;
-}
+// Set message body with translation and placeholders
+$message['body'] = [
+  'body' => t(
+    'Dear @contributor_name,
 
-function _cs_list_of_simulation_types(){
-    $simulation_types = array();
-    $query = db_select('case_study_simulation_type');
-    $query->fields('case_study_simulation_type');
-    $simulation_type_list = $query->execute();
-    while ($simulation_type_data = $simulation_type_list->fetchObject()) {
-        $simulation_types[$simulation_type_data->id] = $simulation_type_data->simulation_type;
-    }
-    return $simulation_types;
-}
+We regret to inform you that your Case Study proposal with the following details has been disapproved:
 
-function _cs_list_of_solvers($simulation_id){
-    $simulation_id = $simulation_id;
-    $solvers = array(
-        0 => '-Select-',
-        );
-    $query = db_select('case_study_solvers');
-    $query->fields('case_study_solvers');
-    $query->condition('simulation_type_id',$simulation_id);
-    $solvers_list = $query->execute();
-    while($solvers_data = $solvers_list->fetchObject()){
-        $solvers[$solvers_data->solver_name] = $solvers_data->solver_name;
-    }
-    return $solvers;
-}
+Full Name: @name_title @contributor_name
+Email: @user_mail
+University/Institute: @university
+City: @city
+State: @state
+Country: @country
+Project Title: @project_title
+Date of Proposal: @creation_date
+Expected Date of Completion: @expected_date
 
-function _cs_dir_name($project, $proposar_name)
-{
-    $project_title = $project;
-    $proposar_name = $proposar_name;
-    $dir_name = $project_title . ' By ' . $proposar_name;
-    $directory_name = str_replace("__", "_", str_replace(" ", "_", str_replace("/", "_", trim($dir_name))));
-    return $directory_name;
-}
-function scilab_case_study_document_path()
-{
-    return $_SERVER['DOCUMENT_ROOT'] . base_path() . 'case_study_uploads/';
-}
-function CS_RenameDir($proposal_id, $dir_name)
-{
-    $proposal_id = $proposal_id;
-    $dir_name = $dir_name;
-    $query = db_query("SELECT directory_name,id FROM case_study_proposal WHERE id = :proposal_id", array(
-        ':proposal_id' => $proposal_id,
-    ));
-    $result = $query->fetchObject();
-//    var_dump($dir_name . $result->directory_name);
-    if ($result != null) {
-        $files = scandir(scilab_case_study_path());
-        $files_id_dir = scilab_case_study_path() . $result->id;
-        //var_dump($files);die;
-        $file_dir = scilab_case_study_path() . $result->directory_name;
-        if (is_dir($file_dir)) {
-            $new_directory_name = rename(scilab_case_study_path() . $result->directory_name, scilab_case_study_path() . $dir_name);
-            return $new_directory_name;
-        } //is_dir($file_dir)
-        else if (is_dir($files_id_dir)) {
-            $new_directory_name = rename(scilab_case_study_path() . $result->id, scilab_case_study_path() . $dir_name);
-            return $new_directory_name;
-        } //is_dir($files_id_dir)
-        else {
-            drupal_set_message('Directory not available for rename.');
-            return;
-        }
-    } //$result != NULL
-    else {
-        drupal_set_message('Project directory name not present in databse');
-        return;
-    }
-    return;
-}
-function CreateReadmeFileCaseStudyProject($proposal_id)
-{
-    $result = db_query("
-                        SELECT * from case_study_proposal WHERE id = :proposal_id", array(
-        ":proposal_id" => $proposal_id,
-    ));
-    $proposal_data = $result->fetchObject();
-    $root_path = scilab_case_study_path();
-    $readme_file = fopen($root_path . $proposal_data->directory_name . "/README.txt", "w") or die("Unable to open file!");
-    $txt = "";
-    $txt .= "About the Case Study";
-    $txt .= "\n" . "\n";
-    $txt .= "Title Of The Case Study Project: " . $proposal_data->project_title . "\n";
-    $txt .= "Proposar Name: " . $proposal_data->name_title . " " . $proposal_data->contributor_name . "\n";
-    $txt .= "University: " . $proposal_data->university . "\n";
-    $txt .= "\n" . "\n";
-    $txt .= " Case Study Project By FOSSEE, IIT Bombay" . "\n";
-    fwrite($readme_file, $txt);
-    fclose($readme_file);
-    return $txt;
-}
-function rrmdir_project($prop_id)
-{
-    $proposal_id = $prop_id;
-    $result = db_query("SELECT * from case_study_proposal WHERE id = :proposal_id", array(
-        ":proposal_id" => $proposal_id,
-    ));
-    $proposal_data = $result->fetchObject();
-    $root_path = scilab_case_study_document_path();
-    $dir = $root_path . $proposal_data->directory_name;
-    if ($proposal_data->id == $prop_id) {
-        if (is_dir($dir)) {
-            $objects = scandir($dir);
-            foreach ($objects as $object) {
-                if ($object != "." && $object != "..") {
-                    if (filetype($dir . "/" . $object) == "dir") {
-                        rrmdir($dir . "/" . $object);
-                    } //filetype($dir . "/" . $object) == "dir"
-                    else {
-                        unlink($dir . "/" . $object);
-                    }
-                } //$object != "." && $object != ".."
-            } //$objects as $object
-            reset($objects);
-            rmdir($dir);
-            $msg = drupal_set_message("Directory deleted successfully");
-            return $msg;
-        } //is_dir($dir)
-        $msg = drupal_set_message("Directory not present");
-        return $msg;
-    } //$proposal_data->id == $prop_id
-    else {
-        $msg = drupal_set_message("Data not found");
-        return $msg;
-    }
-}
-function rrmdir($dir)
-{
-    if (is_dir($dir)) {
-        $objects = scandir($dir);
-        foreach ($objects as $object) {
-            if ($object != "." && $object != "..") {
-                if (filetype($dir . "/" . $object) == "dir") {
-                    rrmdir($dir . "/" . $object);
-                } else {
-                    unlink($dir . "/" . $object);
-                }
+Reason for rejection: @dissapproval_reason
 
-            } //$object != "." && $object != ".."
-        } //$objects as $object
-        reset($objects);
-        rmdir($dir);
-    } //is_dir($dir)
+You are welcome to submit a new proposal.
+
+Best Wishes,
+@site_name Team,
+FOSSEE, IIT Bombay',
+    [
+      '@contributor_name' => $proposal_data->contributor_name ?? '',
+      '@name_title' => $proposal_data->name_title ?? '',
+      '@user_mail' => $user_data->getEmail() ?? '',
+      '@university' => $proposal_data->university ?? '',
+      '@city' => $proposal_data->city ?? '',
+      '@state' => $proposal_data->state ?? '',
+      '@country' => $proposal_data->country ?? '',
+      '@project_title' => $proposal_data->project_title ?? '',
+      '@creation_date' => \Drupal::service('date.formatter')->format($proposal_data->creation_date ?? 0, 'custom', 'd/m/Y'),
+      '@expected_date' => \Drupal::service('date.formatter')->format($proposal_data->expected_date_of_completion ?? 0, 'custom', 'd/m/Y'),
+      '@dissapproval_reason' => $proposal_data->dissapproval_reason ?? '',
+      '@site_name' => $site_name,
+    ]
+  ),
+];
+
+break;
+        case 'case_study_proposal_approved':
+            /* initializing data */
+            $site_name = \Drupal::config('system.site')->get('name') ?? '';
+
+// Database query to fetch proposal data
+            $query = Database::getConnection()->select('case_study_proposal', 'csp');
+            $query->fields('csp');
+            $query->condition('id', $params['case_study_proposal_approved']['proposal_id']);
+            $query->range(0, 1);
+            $proposal_data = $query->execute()->fetchObject();
+
+            // Load user data
+            $user_data = User::load($params['case_study_proposal_approved']['user_id']);
+
+            // Prepare message headers
+            $message['headers'] = $params['case_study_proposal_approved']['headers'];
+
+            // Set message subject with translation
+            $message['subject'] = t(
+            '[@site_name][Case Study Project] Your Case Study Project proposal has been approved',
+            ['@site_name' => $site_name]
+            );
+
+            // Prepare the URL for file upload
+            $upload_url = Url::fromUri('https://scilab.in/case-study-project/abstract-code');
+
+            // Set message body with translation and placeholders
+            $message['body'] = [
+            'body' => t(
+'Dear @contributor_name,
+
+Your Case Study Project proposal with the following details has been approved:
+
+Full Name: @name_title @contributor_name
+Email: @user_mail
+University/Institute: @university
+City: @city
+State: @state
+Country: @country
+Project Title: @project_title
+Date of Proposal: @creation_date
+Expected Date of Completion: @expected_date
+
+You can upload your project files at: @upload_url
+
+Best Wishes,
+@site_name Team,
+FOSSEE, IIT Bombay',
+    [
+    '@contributor_name' => $proposal_data->contributor_name ?? '',
+    '@name_title' => $proposal_data->name_title ?? '',
+    '@user_mail' => $user_data->getEmail() ?? '',
+    '@university' => $proposal_data->university ?? '',
+    '@city' => $proposal_data->city ?? '',
+    '@state' => $proposal_data->state ?? '',
+    '@country' => $proposal_data->country ?? '',
+    '@project_title' => $proposal_data->project_title ?? '',
+    '@creation_date' => \Drupal::service('date.formatter')->format($proposal_data->creation_date ?? 0, 'custom', 'd/m/Y'),
+    '@expected_date' => \Drupal::service('date.formatter')->format($proposal_data->expected_date_of_completion ?? 0, 'custom', 'd/m/Y'),
+    '@upload_url' => $upload_url->toString(),
+    '@site_name' => $site_name,
+    ]
+),
+];
+            break;
+        case 'case_study_proposal_completed':
+            /* initializing data */
+            $site_name = \Drupal::config('system.site')->get('name') ?? '';
+
+// Create URL object for the published case study link
+$case_study_url = Url::fromUri('https://scilab.in/case-study-project/completed-case-studies');
+
+// Database query to fetch proposal data
+$query = Database::getConnection()->select('case_study_proposal', 'csp');
+$query->fields('csp');
+$query->condition('id', $params['case_study_proposal_completed']['proposal_id']);
+$query->range(0, 1);
+$proposal_data = $query->execute()->fetchObject();
+
+// Load user data
+$user_data = User::load($params['case_study_proposal_completed']['user_id']);
+
+// Prepare message headers
+$message['headers'] = $params['case_study_proposal_completed']['headers'];
+
+// Set message subject with translation
+$message['subject'] = t(
+  '[@site_name][Case Study Project] Your case study project has been approved and marked as completed',
+  ['@site_name' => $site_name]
+);
+
+// Set message body with translation and placeholders
+$message['body'] = [
+  'body' => t(
+    'Dear @contributor_name,
+
+We are glad to inform you that your files are approved and the Case Study Project with the following details is marked as Completed. The case study is published at @case_study_url
+
+Full Name: @name_title @contributor_name
+Email: @user_mail
+University/Institute: @university
+City: @city
+State: @state
+Country: @country
+Project Title: @project_title
+
+Best Wishes,
+@site_name Team,
+FOSSEE, IIT Bombay',
+    [
+      '@contributor_name' => $proposal_data->contributor_name ?? '',
+      '@name_title' => $proposal_data->name_title ?? '',
+      '@user_mail' => $user_data->getEmail() ?? '',
+      '@university' => $proposal_data->university ?? '',
+      '@city' => $proposal_data->city ?? '',
+      '@state' => $proposal_data->state ?? '',
+      '@country' => $proposal_data->country ?? '',
+      '@project_title' => $proposal_data->project_title ?? '',
+      '@case_study_url' => $case_study_url->toString(),
+      '@site_name' => $site_name,
+    ]
+  ),
+];
+
+            break;
+        case 'case_study_proposal_send_reminder_mail':
+            /* initializing data */
+            $site_name = \Drupal::config('system.site')->get('name') ?? '';
+
+// Database query to fetch proposal data
+$query = Database::getConnection()->select('case_study_proposal', 'csp');
+$query->fields('csp');
+$query->condition('id', $params['case_study_proposal_send_reminder_mail']['proposal_id']);
+$query->range(0, 1);
+$proposal_data = $query->execute()->fetchObject();
+
+// Load user data
+$user_data = User::load($params['case_study_proposal_send_reminder_mail']['user_id']);
+
+// Prepare message headers
+$message['headers'] = $params['case_study_proposal_send_reminder_mail']['headers'];
+
+// Set message subject with translation
+$message['subject'] = t(
+  '[@site_name][Case Study Project] Completion date of your proposed Case Study is approaching',
+  ['@site_name' => $site_name]
+);
+
+// Set message body with translation and placeholders
+$message['body'] = [
+  'body' => t(
+    'Dear @contributor_name,
+
+This is a gentle reminder regarding the proposed case study project. The submission deadline is approaching, and we kindly request you to complete your submission before the deadline.
+
+Please note that once the deadline passes, the interface will no longer accept submissions. Ensure you submit your work on time to avoid any inconvenience.
+
+Best Wishes,
+
+@site_name Team,
+FOSSEE, IIT Bombay',
+    [
+      '@contributor_name' => $proposal_data->contributor_name ?? '',
+      '@site_name' => $site_name,
+    ]
+  ),
+];
+
+break;
+
+            break;
+        case 'case_study_proposal_deleted':
+            /* initializing data */
+            $query = \Drupal::database()->select('case_study_proposal');
+            $query->fields('case_study_proposal');
+            $query->condition('id', $params['case_study_proposal_deleted']['proposal_id']);
+            $query->range(0, 1);
+            $proposal_data = $query->execute()->fetchObject();
+            $user_data = \Drupal::entityTypeManager()->getStorage('user')->load($params['case_study_proposal_deleted']['user_id']);
+            $message['headers'] = $params['case_study_proposal_deleted']['headers'];
+            
+
+ $site_name = \Drupal::config('system.site')->get('name') ?? '';
+
+// Database query to fetch proposal data
+$query = Database::getConnection()->select('case_study_proposal', 'csp');
+$query->fields('csp');
+$query->condition('id', $params['case_study_proposal_deleted']['proposal_id']);
+$query->range(0, 1);
+$proposal_data = $query->execute()->fetchObject();
+
+// Load user data
+$user_data = User::load($params['case_study_proposal_deleted']['user_id']);
+
+// Prepare message headers
+$message['headers'] = $params['case_study_proposal_deleted']['headers'];
+
+// Set message subject with translation
+$message['subject'] = t(
+  '[@site_name][Case Study Project] Your Case Study Project proposal has been deleted',
+  ['@site_name' => $site_name]
+);
+
+// Set message body with translation and placeholders
+$message['body'] = [
+  'body' => t(
+    'Dear @contributor_name,
+
+We regret to inform you that your Case Study Project proposal with the following details has been deleted:
+
+Full Name: @name_title @contributor_name
+Email: @user_mail
+University/Institute: @university
+City: @city
+State: @state
+Country: @country
+Project Title: @project_title
+
+You can propose a new Case Study project.
+
+Best Wishes,
+@site_name Team,
+FOSSEE, IIT Bombay',
+    [
+      '@contributor_name' => $proposal_data->contributor_name ?? '',
+      '@name_title' => $proposal_data->name_title ?? '',
+      '@user_mail' => $user_data->getEmail() ?? '',
+      '@university' => $proposal_data->university ?? '',
+      '@city' => $proposal_data->city ?? '',
+      '@state' => $proposal_data->state ?? '',
+      '@country' => $proposal_data->country ?? '',
+      '@project_title' => $proposal_data->project_title ?? '',
+      '@site_name' => $site_name,
+    ]
+  ),
+];
+
+            break;
+        /**************************************************************/
+        case 'abstract_uploaded':
+
+// Load site name from configuration
+$site_name = \Drupal::config('system.site')->get('name') ?? '';
+
+// Database query to fetch proposal data
+$query = Database::getConnection()->select('case_study_proposal', 'csp');
+$query->fields('csp');
+$query->condition('id', $params['abstract_uploaded']['proposal_id']);
+$query->range(0, 1);
+$proposal_data = $query->execute()->fetchObject();
+
+// Load user data
+$user = User::load($params['abstract_uploaded']['user_id']);
+
+// Prepare message headers
+$message['headers'] = $params['abstract_uploaded']['headers'];
+
+// Set message subject with translation
+$message['subject'] = t(
+  '[@site_name][Case Study Project] You have uploaded Case Study project files',
+  ['@site_name' => $site_name]
+);
+
+// Set message body with translation and placeholders
+$message['body'] = [
+  'body' => t(
+    'Dear @contributor_name,
+
+You have uploaded the following Abstract and Project files:
+
+Project Title: @project_title
+
+The abstract and project files are under review. You will be notified when it has been approved.
+
+Best Wishes,
+@site_name Team,
+FOSSEE, IIT Bombay',
+    [
+      '@contributor_name' => $proposal_data->contributor_name ?? '',
+      '@project_title' => $proposal_data->project_title ?? '',
+      '@site_name' => $site_name,
+    ]
+  ),
+];
+
+break;
+        case 'solution_approved':
+          
+// Database query to fetch proposal data
+$query = Database::getConnection()->select('case_study_proposal', 'csp');
+$query->fields('csp');
+$query->condition('id', $params['solution_approved']['proposal_id']);
+$query->range(0, 1);
+$proposal_data = $query->execute()->fetchObject();
+
+// Load user data
+//$user = User::load($params['solution_approved']['user_id']);
+
+// Prepare message headers
+$message['headers'] = $params['solution_approved']['headers'];
+           // Load site name from configuration
+$site_name = \Drupal::config('system.site')->get('name') ?? '';
+
+// Email subject with translation
+$message['subject'] = t(
+  '[@site_name][Case Study Project] Your uploaded case study project has been approved',
+  ['@site_name' => $site_name]
+);
+
+// Email body with translation and placeholders
+$message['body'] = [
+  'body' => t(
+    'Dear @contributor_name,
+
+Your uploaded abstract for the case study project has been approved:
+
+Title of case study project: @project_title
+
+Best Wishes,
+@site_name Team,
+FOSSEE, IIT Bombay',
+    [
+      '@contributor_name' => $proposal_data->contributor_name ?? '',
+      '@project_title' => $proposal_data->project_title ?? '',
+      '@site_name' => $site_name,
+    ]
+  )
+];
+
+              break;
+
+case 'solution_resubmission': 
+  $query = Database::getConnection()->select('case_study_proposal', 'csp');
+$query->fields('csp');
+$query->condition('id', $params['solution_resubmission']['proposal_id']);
+$query->range(0, 1);
+$proposal_data = $query->execute()->fetchObject();
+
+// Load user data
+//$user = User::load($params['solution_approved']['user_id']);
+
+// Prepare message headers
+$message['headers'] = $params['solution_resubmission']['headers'];
+           // Load site name from configuration
+$site_name = \Drupal::config('system.site')->get('name') ?? '';
+
+// Email subject with translation
+$message['subject'] = t(
+  '[@site_name][Case Study Project] Your uploaded Case Study Project have been marked as pending',
+  ['@site_name' => $site_name]
+);
+
+// Email body with translation and placeholders
+$message['body'] = [
+  'body' => t(
+'Dear @contributor_name,
+
+Kindly resubmit the project files for the project : @project_title
+Reason for resubmission: @disapproval_message
+
+Best Wishes,
+@site_name Team,
+FOSSEE, IIT Bombay',
+    [
+      '@contributor_name' => $proposal_data->contributor_name ?? '',
+      '@project_title' => $proposal_data->project_title ?? '',
+      '@disapproval_message' => $params['solution_resubmission']['disapproval_message'],
+      '@site_name' => $site_name,
+    ]
+  )
+];
+
+              break;
+case 'solution_disapproved': 
+  //var_dump($params['solution_disapproved']['proposal_id']);die;
+ $query = Database::getConnection()->select('case_study_proposal', 'csp');
+$query->fields('csp');
+$query->condition('id', $params['solution_disapproved']['proposal_id']);
+$query->range(0, 1);
+$proposal_data = $query->execute()->fetchObject();
+//var_dump($proposal_data->contributor_name);die;
+// Load user data
+//$user = User::load($params['solution_approved']['user_id']);
+
+// Prepare message headers
+$message['headers'] = $params['solution_disapproved']['headers'];
+           // Load site name from configuration
+$site_name = \Drupal::config('system.site')->get('name') ?? '';
+
+// Email subject with translation
+$message['subject'] = t(
+  '[@site_name][Case Study Project] Your uploaded Case Study Project have been marked as disapproved',
+  ['@site_name' => $site_name]
+);
+
+// Email body with translation and placeholders
+$message['body'] = [
+  'body' => t(
+'Dear @contributor_name,
+
+Your uploaded Case Study Project files for the Case Study Project Title : @project_title have been marked disapproved and deleted. 
+Reason for disapproval: @disapproval_message
+
+Best Wishes,
+@site_name Team,
+FOSSEE, IIT Bombay',
+    [
+      '@contributor_name' => $proposal_data->contributor_name,
+      '@project_title' => $proposal_data->project_title,
+      '@disapproval_message' => $params['solution_disapproved']['disapproval_message'],
+      '@site_name' => $site_name,
+    ]
+  )
+];
+
+              break;
+/**************************************************************/
+        case 'abstract_edit_file_uploaded':
+            // $solution_q = db_query("SELECT * FROM {case_study_solution} WHERE id = %d LIMIT 1", $params['abstract_uploaded']['solution_id']);
+            $site_name = \Drupal::config('system.site')->get('name') ?? '';
+
+// Database query to fetch proposal data
+$query = Database::getConnection()->select('case_study_proposal', 'csp');
+$query->fields('csp');
+$query->condition('id', $params['abstract_edit_file_uploaded']['proposal_id']);
+$query->range(0, 1);
+$proposal_data = $query->execute()->fetchObject();
+
+// Load user data
+//$user = User::load($params['abstract_edit_file_uploaded']['user_id']);
+
+// Get file names from parameters
+$abs_file_name = $params['abstract_edit_file_uploaded']['abs_file'] ?? '';
+$proj_file_name = $params['abstract_edit_file_uploaded']['proj_file'] ?? '';
+
+// Prepare message headers
+$message['headers'] = $params['abstract_edit_file_uploaded']['headers'];
+
+// Set message subject with translation
+$message['subject'] = t(
+  '[@site_name][Case Study Project] Project files/abstract of a case study updated by Scilab Team',
+  ['@site_name' => $site_name]
+);
+
+// Set message body with translation and placeholders
+$message['body'] = [
+  'body' => t(
+'Dear @contributor_name,
+
+Our team has updated the abstract/project files for the following case study:
+
+Project Title: @project_title
+@abs_file
+@proj_file
+
+Best Wishes,
+@site_name Team,
+FOSSEE, IIT Bombay',
+    [
+      '@contributor_name' => $proposal_data->contributor_name ?? '',
+      '@project_title' => $proposal_data->project_title ?? '',
+      '@abs_file' => !empty($abs_file_name) ? t('Updated Abstract File: @file', ['@file' => $abs_file_name]) : '',
+      '@proj_file' => !empty($proj_file_name) ? t('Updated Project File: @file', ['@file' => $proj_file_name]) : '',
+      '@site_name' => $site_name,
+    ]
+  ),
+];
+
+break;
+        case 'standard':
+            $message['subject'] = $params['standard']['subject'];
+            $message['body'] = $params['standard']['body'];
+            $message['headers'] = $params['standard']['headers'];
+            break;
+    } //$key
 }

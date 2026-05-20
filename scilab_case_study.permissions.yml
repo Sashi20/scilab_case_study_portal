@@ -1,0 +1,54 @@
+'Case Study add project titles':
+  title: 'Case Study add project titles'
+  'restrict access': true
+'Case Study create proposal':
+  title: 'Case Study create proposal'
+  'restrict access': true
+'Case Study manage proposal':
+  title: 'Case Study manage proposal'
+  'restrict access': true
+'Case Study edit proposal':
+  title: 'Case Study edit proposal'
+  'restrict access': true
+'Case Study approve proposal':
+  title: 'Case Study approve proposal'
+  'restrict access': true
+'Case Study propose solution':
+  title: 'Case Study propose solution'
+  'restrict access': true
+'Case Study Project titles list':
+  title: 'Case Study Project titles list'
+  'restrict access': true
+'Case Study approve abstract':
+  title: 'Case Study approve code'
+  'restrict access': true
+'Case Study bulk manage abstract':
+  title: 'Case Study bulk manage abstract'
+  'restrict access': true
+'Case Study bulk delete abstract':
+  title: 'Case Study bulk delete code'
+  'restrict access': true
+'Case Study upload abstract':
+  title: 'Case Study upload code'
+  'restrict access': true
+'Case Study download code':
+  title: 'Case Study download code'
+  'restrict access': true
+'administer Case Study':
+  title: 'administer Case Study'
+  'restrict access': true
+'Case Study generate abstract':
+  title: 'Case Study generate abstract'
+  'restrict access': true
+'list Case Study certificates':
+  title: 'list the certificates'
+  description: 'list the certificates'
+  'restrict access': true
+'list Case Study custom certificates':
+  title: 'list the mentor certificates'
+  description: 'list the mentor certificates'
+  'restrict access': true
+'verify certificates':
+  title: 'verify the certificates'
+  description: 'verify the certificates'
+  'restrict access': true

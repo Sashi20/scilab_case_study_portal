@@ -1,0 +1,169 @@
+scilab_case_study.proposal_form:
+  path: /case-study-project/proposal
+  defaults:
+    _title: 'Case Study Proposal Form'
+    _form: \Drupal\scilab_case_study\Form\ScilabCaseStudyProposalForm
+  requirements:
+    _permission: 'Case Study create proposal'
+scilab_case_study.proposal_pending:
+  path: /case-study-project/manage-proposal/pending
+  defaults:
+    _title: 'Pending Proposals'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::scilab_case_study_proposal_pending'
+  requirements:
+    _permission: 'Case Study manage proposal'
+  options:
+    no_cache: TRUE
+scilab_case_study.proposal_all:
+  path: /case-study-project/manage-proposal/all
+  defaults:
+    _title: 'All Proposals'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::scilab_case_study_proposal_all'
+  requirements:
+    _permission: 'Case Study manage proposal'
+  options:
+    no_cache: TRUE
+scilab_case_study.proposal_edit_file_all:
+  path: /case-study-project/manage-proposal/edit-upload-file
+  defaults:
+    _title: 'Edit code files'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::scilab_case_study_proposal_edit_file_all'
+  requirements:
+    _permission: 'Case Study manage proposal'
+  options:
+    no_cache: TRUE
+scilab_case_study.proposal_approval_form:
+  path: /case-study-project/manage-proposal/approve/{proposal_id}
+  defaults:
+    _title: 'Approve Proposal'
+    _form: \Drupal\scilab_case_study\Form\ScilabCaseStudyProposalApprovalForm
+  requirements:
+    _permission: 'Case Study manage proposal'
+scilab_case_study.proposal_edit_form:
+  path: /case-study-project/manage-proposal/edit/{proposal_id}
+  defaults:
+    _title: 'Edit Proposal'
+    _form: \Drupal\scilab_case_study\Form\ScilabCaseStudyProposalEditForm
+  requirements:
+    _permission: 'Case Study manage proposal'
+scilab_case_study.proposal_send_reminder_mail_form:
+  path: /case-study-project/manage-proposal/send-reminder-mail/{proposal_id}
+  defaults:
+    _title: 'Send Reminder to Contriubutor about Proposal Completion Date'
+    _form: \Drupal\scilab_case_study\Form\ScilabCaseStudyProposalSendReminderMailForm
+  requirements:
+    _permission: 'Case Study manage proposal'
+scilab_case_study.proposal_status_form:
+  path: /case-study-project/manage-proposal/status/{proposal_id}
+  defaults:
+    _title: 'Proposal Status'
+    _form: \Drupal\scilab_case_study\Form\ScilabCaseStudyProposalStatusForm
+  requirements:
+    _permission: 'Case Study approve proposal'
+scilab_case_study.abstract_bulk_approval_form:
+  path: /case-study-project/abstract-approval/bulk
+  defaults:
+    _title: 'Manage Case Study Submissions'
+    _form: \Drupal\scilab_case_study\Form\ScilabCaseStudyAbstractBulkApprovalForm
+  requirements:
+    _permission: 'Case Study bulk manage abstract'
+scilab_case_study.edit_upload_abstract_code_form:
+  path: /case-study-project/abstract-code/edit-upload-files/{proposal_id}
+  defaults:
+    _title: 'Case Study Project Directory edit uploaded files for proposal'
+    _form: \Drupal\scilab_case_study\Form\ScilabCaseStudyEditUploadAbstractCodeForm
+  requirements:
+    _permission: 'Case Study upload abstract'
+scilab_case_study.abstract:
+  path: /case-study-project/abstract-code
+  defaults:
+    _title: 'Case Study Submission'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::scilab_case_study_abstract'
+  options:
+    no_cache: TRUE
+  requirements:
+    _permission: 'Case Study upload abstract'
+scilab_case_study.upload_abstract_code_form:
+  path: /case-study-project/abstract-code/upload
+  defaults:
+    _title: 'Case Study Submission'
+    _form: \Drupal\scilab_case_study\Form\ScilabCaseStudyUploadAbstractCodeForm
+  requirements:
+    _permission: 'Case Study upload abstract'
+scilab_case_study.download_full_project:
+  path: /case-study-project/full-download/project/{proposal_id}
+  defaults:
+    _title: 'Code Download'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::scilab_case_study_download_full_project'
+  requirements:
+    _permission: 'Case Study download code'
+scilab_case_study.completed_proposals_all:
+  path: /case-study-project/completed-case-studies
+  defaults:
+    _title: 'Completed Case studies'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::scilab_case_study_completed_proposals_all'
+  requirements:
+    _permission: 'Case Study download code'
+  options:
+    no_cache: TRUE
+scilab_case_study.progress_all:
+  path: /case-study-project/case-study-progress
+  defaults:
+    _title: 'Case studies in Progress'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::scilab_case_study_progress_all'
+  requirements:
+    _permission: 'Case Study download code'
+  options:
+    no_cache: TRUE
+scilab_case_study.run_form:
+  path: /case-study-project/case-study-run/{proposal_id}
+  defaults:
+    _title: 'Download Codes'
+    _form: \Drupal\scilab_case_study\Form\ScilabCaseStudyRunForm
+  requirements:
+    _permission: 'Case Study download code'
+scilab_case_study.download_final_report:
+  path: /case-study-project/download/final-report
+  defaults:
+    _title: 'Download Final Report'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::scilab_case_study_download_final_report'
+  requirements:
+    _permission: 'download code'
+scilab_case_study.download_proposal_abstract:
+  path: /case-study-project/download/proposal-abstract/{proposal_id}
+  defaults:
+    _title: 'Download Abstract'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::download_proposal_abstract'
+  requirements:
+    _permission: 'download code'
+  options:
+    no_cache: TRUE
+scilab_case_study.settings_form:
+  path: /admin/settings/case-study
+  defaults:
+    _title: 'Case Study Settings'
+    _form: \Drupal\scilab_case_study\Form\ScilabCaseStudySettingsForm
+  requirements:
+    _permission: 'administer Case Study'
+scilab_case_study._list_case_study_certificates:
+  path: /case-study-project/certificates
+  defaults:
+    _title: 'List of Case Study Certificates'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::_list_case_study_certificates'
+  requirements:
+    _permission: 'list Case Study certificates'
+scilab_case_study.generate_pdf:
+  path: /case-study-project/certificates/generate-pdf
+  defaults:
+    _title: 'Download Certificate'
+    _form: \Drupal\scilab_case_study\Form\GeneratePdf
+  requirements:
+    _permission: 'generate pdf'
+scilab_case_study.verify_certificates_verify_certificates:
+  path: /case-study-project/certificates/verify
+  defaults:
+    qr_code: verify_certificates
+    _title: 'Certificate Verification'
+    _controller: '\Drupal\scilab_case_study\Controller\DefaultController::verify_certificates'
+  requirements:
+    _permission: 'verify certificates'

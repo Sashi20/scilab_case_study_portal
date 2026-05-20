@@ -1,0 +1,18 @@
+scilab_case_study.proposal_form:
+  route_name: scilab_case_study.proposal_form
+  title: 'Case Study Proposal Form'
+  description: 'Case Study Proposal Form'
+scilab_case_study.proposal_pending:
+  route_name: scilab_case_study.proposal_pending
+  title: 'Manage Case Study Proposals'
+  description: 'Manage Case Study Proposals'
+scilab_case_study.completed_proposals_all:
+  route_name: scilab_case_study.completed_proposals_all
+  title: 'Completed Case studies'
+scilab_case_study.progress_all:
+  route_name: scilab_case_study.progress_all
+  title: 'Case studies in Progress'
+scilab_case_study.settings_form:
+  route_name: scilab_case_study.settings_form
+  title: 'Case Study Settings'
+  description: 'Case Study Settings'

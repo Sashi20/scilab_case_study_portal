@@ -1,0 +1,7 @@
+name: 'Scilab Case Study'
+description: 'Scilab Case Study Project, FOSSEE, IIT Bombay'
+package: FOSSEE
+core: 7.x
+core_version_requirement: '^10 || ^11'
+type: module
+dependencies: {  }

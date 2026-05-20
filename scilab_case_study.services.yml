@@ -1,0 +1,3 @@
+services:
+  case_study_global:
+    class: Drupal\scilab_case_study\Services\CaseStudyGlobalFunction

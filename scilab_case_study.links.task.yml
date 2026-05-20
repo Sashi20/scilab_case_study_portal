@@ -1,0 +1,22 @@
+scilab_case_study.proposal_pending:
+  route_name: scilab_case_study.proposal_pending
+  title: 'Manage Case Study Proposals'
+  description: 'Manage Case Study Proposals'
+scilab_case_study.manage_proposals:
+  route_name: scilab_case_study.proposal_pending
+  title: 'Pending Proposals'
+  weight: 1
+  base_route: scilab_case_study.proposal_pending
+  description: 'Pending Case Study Proposals'
+scilab_case_study.proposal_all:
+  route_name: scilab_case_study.proposal_all
+  title: 'All Proposals'
+  weight: 2
+  base_route: scilab_case_study.proposal_pending
+  description: 'All Proposals'
+scilab_case_study.proposal_edit_file_all:
+  route_name: scilab_case_study.proposal_edit_file_all
+  title: 'Edit code files'
+  weight: 3
+  base_route: scilab_case_study.proposal_pending
+  description: 'All Proposals'
