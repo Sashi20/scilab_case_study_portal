@@ -97,6 +97,8 @@ scilab_case_study.download_full_project:
     _controller: '\Drupal\scilab_case_study\Controller\DefaultController::scilab_case_study_download_full_project'
   requirements:
     _permission: 'Case Study download code'
+  options:
+    no_cache: TRUE
 scilab_case_study.completed_proposals_all:
   path: /case-study-project/completed-case-studies
   defaults:
@@ -123,12 +125,14 @@ scilab_case_study.run_form:
   requirements:
     _permission: 'Case Study download code'
 scilab_case_study.download_final_report:
-  path: /case-study-project/download/final-report
+  path: /case-study-project/download/final-report/{proposal_id}
   defaults:
     _title: 'Download Final Report'
     _controller: '\Drupal\scilab_case_study\Controller\DefaultController::scilab_case_study_download_final_report'
   requirements:
     _permission: 'download code'
+  options:
+    no_cache: TRUE
 scilab_case_study.download_proposal_abstract:
   path: /case-study-project/download/proposal-abstract/{proposal_id}
   defaults:
@@ -152,6 +156,8 @@ scilab_case_study._list_case_study_certificates:
     _controller: '\Drupal\scilab_case_study\Controller\DefaultController::_list_case_study_certificates'
   requirements:
     _permission: 'list Case Study certificates'
+  options:
+    no_cache: TRUE
 scilab_case_study.generate_pdf:
   path: /case-study-project/certificates/generate-pdf
   defaults:
@@ -167,3 +173,5 @@ scilab_case_study.verify_certificates_verify_certificates:
     _controller: '\Drupal\scilab_case_study\Controller\DefaultController::verify_certificates'
   requirements:
     _permission: 'verify certificates'
+  options:
+    no_cache: TRUE

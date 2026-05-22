@@ -449,11 +449,12 @@ $return_html .= $url . '<br />';
     $query->condition('is_completed', 0);
     $query->orderBy('approval_date', 'DESC');
     $result = $query->execute();
-    if ($i == 0) {
-      $markup = "Work is in progress for the following case studies under the Case Study Project<hr>";
-    } //$result->rowCount() == 0
-    else {
-      $markup = "Work is in progress for the following case studies under the Case Study Project<hr>";
+    // if ($i == 0) {
+    //   $markup = "Work is in progress for the following case studies under the Case Study Project<hr>";
+    // } //$result->rowCount() == 0
+    // else {
+    //   $markup = "";
+      //$markup = "Work is in progress for the following case studies under the Case Study Project<hr>";
       $preference_rows = [];
      while ($row = $result->fetchObject()) {
         $approval_date = date("Y", $row->approval_date);
@@ -476,21 +477,29 @@ $return_html .= $url . '<br />';
       $page_content = [
         '#type' => 'table',
         '#header' => $preference_header,
-        '#rows' => $preference_rows
+        '#rows' => $preference_rows,
+        '#empty' => 'We welcome your contribution to the Case Study project'
       ];
 
-    }
+    if($i >0){
     return [
       'markup' => [
         '#markup' => $markup,
       ],
       'table' => $page_content,
     ];
+    }
+    else{
+      return [
+        'table' => $page_content
+      ];
+    }
   }
 
   public function scilab_case_study_download_final_report() {
-    $proposal_id = arg(3);
-    $root_path = scilab_case_study_path();
+    $proposal_id  = \Drupal::routeMatch()->getParameter('proposal_id');
+    $service = \Drupal::service('case_study_global');
+    $root_path = $service->scilab_case_study_path();
     $query = \Drupal::database()->select('case_study_proposal');
     $query->fields('case_study_proposal');
     $query->condition('id', $proposal_id);
@@ -503,24 +512,22 @@ $return_html .= $url . '<br />';
     $project_files = $query->execute();
     $final_report_data = $project_files->fetchObject();
     $directory_name = $scilab_case_study_project_files->directory_name . '/project_files/';
-    /*$str = substr($scilab_case_study_project_files->samplefilepath, strrpos($scilab_case_study_project_files->samplefilepath, '/'));
-    $abstract_file = ltrim($str, '/');*/
-    //var_dump($final_report_data);die;
-    ob_clean();
-    header("Pragma: public");
-    header("Expires: 0");
-    header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-    header("Cache-Control: public");
-    header("Content-Description: File Transfer");
-    header("Content-Type: application/pdf");
-    header('Content-disposition: attachment; filename="' . $final_report_data->filename . '"');
-    header("Content-Length: " . filesize($root_path . $directory_name . $final_report_data->filename));
-    header("Content-Transfer-Encoding: binary");
-    header("Expires: 0");
-    header("Pragma: no-cache");
-    readfile($root_path . $directory_name . $final_report_data->filename);
-    ob_end_flush();
-    ob_clean();
+    $file_path = $root_path . $directory_name . $final_report_data->filename;
+    if (!file_exists($file_path)) {
+      throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+    }
+
+    // Create a BinaryFileResponse to force download.
+    $response = new BinaryFileResponse($file_path);
+  $response->setContentDisposition(
+    ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+    str_replace(' ', '_', $final_report_data->filename)
+  );
+
+    // Set the content type header.
+   // $response->headers->set('Content-Type', $example_file_data->filemime);
+
+    return $response;
   }
 
   public function download_proposal_abstract() {
@@ -544,7 +551,7 @@ $return_html .= $url . '<br />';
     $response = new BinaryFileResponse($file_path);
   $response->setContentDisposition(
     ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-    str_replace(' ', '_', $abstract_file)
+    str_replace(' ', '_', $filename)
   );
 
     // Set the content type header.
