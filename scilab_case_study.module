@@ -318,28 +318,6 @@ function scilab_case_study_menu()
         ),
         'file' => 'pdf/cert_new.inc',
     );
-    /*$items['case-study-project/certificates-custom'] = array(
-    'title'=> 'List of Case Study Custom Certificates',
-    'description'=> 'List of Case Study Custom Certificates',
-    'page callback'=> '_list_scilab_case_study_custom_certificates',
-    'access arguments'=> array(
-    'list Case Study custom certificates'
-    ),
-    'file'=> 'pdf/list_mentor_certificates.inc'
-    );
-    $items['case-study-project/certificates-custom/pdf'] = array(
-    'title'=> 'Download Certificate',
-    'description'=> 'Download Certificate',
-    'page callback'=> 'drupal_get_form',
-    'page arguments'=> array(
-    'generate_pdf'
-    ),
-    'type'=> MENU_CALLBACK,
-    'access arguments'=> array(
-    'generate pdf'
-    ),
-    'file'=> 'pdf/mentor_cert_pdf.inc'
-    ); */
     $items['case-study-project/certificates/verify'] = array(
         "title" => "Certificate Verification",
         "page callback" => "verify_certificates",
@@ -352,6 +330,79 @@ function scilab_case_study_menu()
         'type' => MENU_CALLBACK,
         'file' => 'pdf/verify_certificates.inc',
     );
+    /********* GUI Hackathon Submissions start here *********/
+    // $items['gui-hackathon/registration'] = array(
+    //     'title' => 'GUI Hackathon Registration',
+    //     'description' => 'GUI Hackathon Registration',
+    //     'page callback' => 'drupal_get_form',
+    //     'page arguments' => array(
+    //         'scilab_gui_hackathon_registration_form',
+    //     ),
+    //     'access arguments' => array(
+    //         'Submit GUI Hackathon Submissions',
+    //     ),
+    //     'file' => 'gui_hackathon_submissions.inc',
+    // );
+    $items['gui-hackathon/final-submission'] = array(
+        'title' => 'GUI Hackathon Final Submissions',
+        'description' => 'GUI Hackathon Final Submissions',
+        'page callback' => 'gui_hackathon_final_submission',
+        // 'page arguments' => array(
+        //     'scilab_gui_hackathon_final_submission_form'
+        // ),
+        'access arguments' => array(
+            'Submit GUI Hackathon Submissions',
+        ),
+        'file' => 'gui_hackathon_submissions.inc',
+    );
+    // $items['gui-hackathon-submissions/manage'] = array(
+    //     'title' => 'Manage GUI Hackathon Submissions',
+    //     'description' => 'Manage GUI Hackathon Submissions',
+    //     'page callback' => 'scilab_case_study_gui_hackathon_submissions_manage',
+    //     'access arguments' => array(
+    //         'Manage GUI Hackathon Submissions',
+    //     ),
+    //     'file' => 'gui_hackathon_submissions.inc',
+    // );
+    // $items['gui-hackathon-submissions/manage/approve'] = array(
+    //     'title' => 'Approve GUI Hackathon Submissions',
+    //     'description' => 'Approve GUI Hackathon Submissions',
+    //     'page callback' => 'drupal_get_form',
+    //     'page arguments' => array(
+    //         'scilab_case_study_gui_hackathon_submissions_approval_form',
+    //     ),
+    //     'access arguments' => array(
+    //         'Approve GUI Hackathon Submissions',
+    //     ),
+    //     'type' => MENU_CALLBACK,
+    //     'file' => 'gui_hackathon_submissions.inc',
+    // );
+    // $items['gui-hackathon-submissions/manage/edit'] = array(
+    //     'title' => 'Edit GUI Hackathon Submissions',
+    //     'description' => 'Edit GUI Hackathon Submissions',
+    //     'page callback' => 'drupal_get_form',
+    //     'page arguments' => array(
+    //         'scilab_case_study_gui_hackathon_submissions_edit_form',
+    //     ),
+    //     'access arguments' => array(
+    //         'Edit GUI Hackathon Submissions',
+    //     ),
+    //     'type' => MENU_CALLBACK,
+    //     'file' => 'gui_hackathon_submissions.inc',
+    // );
+    $items['admin/settings/gui-hackathon'] = array(
+        'title' => 'GUI Hackathon Settings',
+        'description' => 'GUI Hackathon Settings',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array(
+            'gui_hackathon_settings_form',
+        ),
+        'access arguments' => array(
+            'administer GUI Hackathon',
+        ),
+        'type' => MENU_NORMAL_ITEM,
+        'file' => 'gui_hackathon_settings.inc',
+    );
     return $items;
 }
 /**
@@ -360,6 +411,10 @@ function scilab_case_study_menu()
 function scilab_case_study_permission()
 {
     return array(
+        'Submit GUI Hackathon Submissions' => array(
+            'title' => t('Submit GUI Hackathon Submissions'),
+            'restrict access' => true,
+        ),
         'Case Study add project titles' => array(
             'title' => t('Case Study add project titles'),
             'restrict access' => true,
@@ -410,6 +465,10 @@ function scilab_case_study_permission()
         ),
         'administer Case Study' => array(
             'title' => t('administer Case Study'),
+            'restrict access' => true,
+        ),
+        'administer GUI Hackathon' => array(
+            'title' => t('administer GUI Hackathon'),
             'restrict access' => true,
         ),
         'Case Study generate abstract' => array(
@@ -467,6 +526,11 @@ function scilab_case_study_check_code_number($number = '')
 function scilab_case_study_path()
 {
     return $_SERVER['DOCUMENT_ROOT'] . base_path() . 'case_study_uploads/';
+}
+
+function gui_hackathon_submission_path()
+{
+    return $_SERVER['DOCUMENT_ROOT'] . base_path() . 'gui_hackathon_uploads/';
 }
 /************************* USER VERIFICATION FUNCTIONS ************************/
 function scilab_case_study_get_proposal()

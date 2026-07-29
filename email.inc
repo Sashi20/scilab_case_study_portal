@@ -50,6 +50,43 @@ FOSSEE, IIT Bombay', array(
                 )),
             );
             break;
+            case 'gui_hackathon_final_submission':
+            /* initializing data */
+            $query = db_select('gui_hackathon_final_submission');
+            $query->fields('gui_hackathon_final_submission');
+            $query->condition('id', $params['gui_hackathon_final_submission']['submission_id']);
+            $query->range(0, 1);
+            $proposal_data = $query->execute()->fetchObject();
+            $user = user_load($params['gui_hackathon_final_submission']['user_id']);
+            $message['headers'] = $params['gui_hackathon_final_submission']['headers'];
+            $message['subject'] = t('[!site_name][GUI Hackathon] Your final submission has been received', array(
+                '!site_name' => variable_get('site_name', ''),
+            ), array(
+                'language' => $language->language,
+            ));
+            $message['body'] = array(
+                'body' => t('
+Dear ' . $proposal_data->contributor_name . ',
+
+We have received your final submission for GUI Hackathon with the following details:
+
+Full Name: ' . $proposal_data->contributor_name . '
+Email: ' . $user->mail . '
+Project Title: ' . $proposal_data->project_title . '
+Revision: ' . $proposal_data->revision . '
+
+You will soon receive an email when same has been approved/disapproved.
+
+Best Wishes,
+!site_name Team,
+FOSSEE, IIT Bombay', array(
+                    '!site_name' => variable_get('site_name', ''),
+                    '!user_name' => $user->name,
+                ), array(
+                    'language' => $language->language,
+                )),
+            );
+            break;
         case 'case_study_proposal_disapproved':
             /* initializing data */
             $query = db_select('case_study_proposal');
