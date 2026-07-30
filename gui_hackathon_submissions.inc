@@ -143,6 +143,9 @@ function scilab_gui_hackathon_final_submission_form_validate($form, &$form_state
 {
 if (isset($_FILES['files']))
 	{
+		if($form_state['values']['final_submission_description'] && (strlen($form_state['values']['final_submission_description']) < 80 || strlen($form_state['values']['final_submission_description']) > 500)){
+			form_set_error('final_submission_description', t('Project description must be between 80 and 500 characters.'));
+		}
 		/* check if atleast one source or result file is uploaded */
 		if (!($_FILES['files']['name']['upload_file']))
 			form_set_error('upload_file', t('Please upload the final submission file'));
