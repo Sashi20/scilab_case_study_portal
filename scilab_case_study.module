@@ -355,41 +355,51 @@ function scilab_case_study_menu()
         ),
         'file' => 'gui_hackathon_submissions.inc',
     );
-    // $items['gui-hackathon-submissions/manage'] = array(
-    //     'title' => 'Manage GUI Hackathon Submissions',
-    //     'description' => 'Manage GUI Hackathon Submissions',
-    //     'page callback' => 'scilab_case_study_gui_hackathon_submissions_manage',
-    //     'access arguments' => array(
-    //         'Manage GUI Hackathon Submissions',
-    //     ),
-    //     'file' => 'gui_hackathon_submissions.inc',
-    // );
-    // $items['gui-hackathon-submissions/manage/approve'] = array(
-    //     'title' => 'Approve GUI Hackathon Submissions',
-    //     'description' => 'Approve GUI Hackathon Submissions',
-    //     'page callback' => 'drupal_get_form',
-    //     'page arguments' => array(
-    //         'scilab_case_study_gui_hackathon_submissions_approval_form',
-    //     ),
-    //     'access arguments' => array(
-    //         'Approve GUI Hackathon Submissions',
-    //     ),
-    //     'type' => MENU_CALLBACK,
-    //     'file' => 'gui_hackathon_submissions.inc',
-    // );
-    // $items['gui-hackathon-submissions/manage/edit'] = array(
-    //     'title' => 'Edit GUI Hackathon Submissions',
-    //     'description' => 'Edit GUI Hackathon Submissions',
-    //     'page callback' => 'drupal_get_form',
-    //     'page arguments' => array(
-    //         'scilab_case_study_gui_hackathon_submissions_edit_form',
-    //     ),
-    //     'access arguments' => array(
-    //         'Edit GUI Hackathon Submissions',
-    //     ),
-    //     'type' => MENU_CALLBACK,
-    //     'file' => 'gui_hackathon_submissions.inc',
-    // );
+    $items['gui-hackathon/review'] = array(
+        'title' => 'Review GUI Hackathon Submissions',
+        'description' => 'Review  GUI Hackathon Submissions',
+        'page callback' => 'gui_hackathon_display_all_submissions',
+        'access arguments' => array(
+            'Review GUI Hackathon Submissions',
+        ),
+        'file' => 'gui_hackathon_submissions.inc',
+    );
+    $items['gui-hackathon/view-submission'] = array(
+        'title' => 'Approve GUI Hackathon Submissions',
+        'description' => 'Approve GUI Hackathon Submissions',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array(
+            'gui_hackathon_submissions_approval_form',
+        ),
+        'access arguments' => array(
+            'Review GUI Hackathon Submissions',
+        ),
+        'type' => MENU_CALLBACK,
+        'file' => 'gui_hackathon_submissions.inc',
+    );
+    $items['gui-hackathon/edit-submission'] = array(
+        'title' => 'Edit GUI Hackathon Submissions',
+        'description' => 'Edit GUI Hackathon Submissions',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array(
+            'gui_hackathon_submissions_edit_form',
+        ),
+        'access arguments' => array(
+            'Review GUI Hackathon Submissions',
+        ),
+        'type' => MENU_CALLBACK,
+        'file' => 'gui_hackathon_submissions.inc',
+    );
+    $items['gui-hackathon/download-submission'] = array(
+        'title' => 'Download GUI Hackathon Submission',
+        'description' => 'Download GUI Hackathon Submission',
+        'page callback' => 'gui_hackathon_download_submission',
+        'access arguments' => array(
+            'Review GUI Hackathon Submissions',
+        ),
+        'type' => MENU_CALLBACK,
+        'file' => 'gui_hackathon_submissions.inc',
+    );
     $items['admin/settings/gui-hackathon'] = array(
         'title' => 'GUI Hackathon Settings',
         'description' => 'GUI Hackathon Settings',
@@ -413,6 +423,10 @@ function scilab_case_study_permission()
     return array(
         'Submit GUI Hackathon Submissions' => array(
             'title' => t('Submit GUI Hackathon Submissions'),
+            'restrict access' => true,
+        ),
+        'Review GUI Hackathon Submissions' => array(
+            'title' => t('Review GUI Hackathon Submissions'),
             'restrict access' => true,
         ),
         'Case Study add project titles' => array(

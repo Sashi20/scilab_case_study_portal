@@ -288,42 +288,6 @@ function scilab_gui_hackathon_final_submission_form_submit($form, &$form_state)
 				drupal_set_message(t("File uploaded successfully."), 'status');
 		}
 		}
-		//$file_name = 'SGVH' . $final_submission_data->id . '.zip';
-		// if ($file_name)
-		// {
-			
-		// 	/* checking file type */
-		// 	//$file_type = 'S';
-		// 	if (file_exists($root_path . $file_name))
-		// 	{
-		// 		move_uploaded_file($_FILES['files']['tmp_name'][$file_form_name], $root_path . $file_name);
-		// 		$query = "UPDATE gui_hackathon_final_submission SET filename = :filename, revision = :revision WHERE id = :id";
-		// 		$args = array(
-		// 			":filename" => $file_name,
-		// 			":revision" => $revision,
-		// 			":id" => $submission_id
-		// 		);
-		// 		$updateresult = db_query($query, $args);
-		// 		 drupal_set_message(t("File !filename replaced as it already exists", array('!filename' => $_FILES['files']['name'][$file_form_name])), 'error');
-		// 		//unlink($root_path . $dest_path . $_FILES['files']['name'][$file_form_name]);
-		// 	} //file_exists($root_path . $dest_path . $_FILES['files']['name'][$file_form_name])
-		// 	//file_exists($root_path . $dest_path . $_FILES['files']['name'][$file_form_name])
-		// 	/* uploading file */
-		// 	if (move_uploaded_file($_FILES['files']['tmp_name'][$file_form_name], $root_path . $file_name))
-		// 	{
-		// 		//unlink($root_path . $file_name);
-		// 		$query = "UPDATE gui_hackathon_final_submission SET filename = :filename, revision = :revision WHERE id = :id";
-		// 		$args = array(
-		// 			":filename" => $file_name,
-		// 			":revision" => $revision,
-		// 			":id" => $submission_id
-		// 		);
-				
-		// 		$updateresult = db_query($query, $args);
-		// 		//var_dump($args);die;
-
-		// 		drupal_set_message($file_name . ' uploaded successfully.', 'status');
-		// 	} //move_uploaded_file($_FILES['files']['tmp_name'][$file_form_name], $root_path . $dest_path . $_FILES['files']['name'][$file_form_name])
 			else
 			{
 				drupal_set_message('Error uploading file : ' . $dest_path . '/' . $file_name, 'error');
@@ -355,4 +319,345 @@ function scilab_gui_hackathon_final_submission_form_submit($form, &$form_state)
 		drupal_set_message('Error sending email message.', 'error');
 	drupal_set_message(t('We have received your final submission. We will get back to you soon.'), 'status');
 	drupal_goto('');
+}
+
+function gui_hackathon_display_all_submissions()
+{
+    global $user;
+    /* get pending proposals to be approved */
+    if ($user->uid == 0)
+    {
+        $msg = drupal_set_message(t('It is mandatory to login on this website to view all submissions. If you are new user please create a new account first.'), 'error');
+        //drupal_goto('/pssp');
+        drupal_goto('user/login', array('query' => drupal_get_destination()));
+        return $msg;
+    }
+    $output = "";
+    $final_submission_rows = array();
+    $query = db_select('gui_hackathon_final_submission');
+    $query->fields('gui_hackathon_final_submission');
+	$query->orderBy('creation_date', 'DESC');
+    $my_proposals_q = $query->execute();
+    while($final_submission_data = $my_proposals_q->fetchObject()){
+    //     $query_user = db_select('cfd_hackathon_user_profile');
+    // $query_user->fields('cfd_hackathon_user_profile');
+    // $query_user->condition('uid', $final_submission_data->uid);
+    // //$query_user->condition('approval_status', '1');
+    // $user_q = $query_user->execute();
+    // $user_data = $user_q->fetchObject();
+    $today = date("Y-m-d H:i:s");
+    $status = '';
+	$action = l('View', 'gui-hackathon/view-submission/' . $final_submission_data->id) . ' | ' . l('Edit', 'gui-hackathon/edit-submission/' . $final_submission_data->id);
+	switch($final_submission_data->approval_status){
+		case 0:
+			$status = t('Pending Approval');
+			break;
+		case 1:
+			$status = t('Approved');
+			break;
+		case 2:
+			$status = t('Marked for Resubmission');
+			break;
+		case 3:
+			$status = t('Marked as Disapproved');
+			break;	
+		default:
+			$status = t('Unknown Status');
+			$action = '';
+			break;
+	}
+    // if ($final_submission_data->approval_status == 1) {
+    //     $status = l('Release', 'gui-hackathon/release/' . $final_submission_data->id) . ' | ' . l('View Submission', 'gui-hackathon/view-submission/' . $final_submission_data->id) . ' | ' . l('Mark Completed', 'gui-hackathon/mark-completed/' . $final_submission_data->id);
+    // }
+    // elseif ($final_submission_data->approval_status == 2) {
+    //     $action = t('This title has been discontinued');
+    // }
+    // elseif ($final_submission_data->approval_status == 3) {
+    //     $action = t('This title has been completed') . ' | ' . l('View Submission', 'gui-hackathon/view-submission/' . $final_submission_data->id);
+    // }
+    $creation_date = date('d-m-Y', $final_submission_data->creation_date);
+    //$expected_date_of_completion = date('d-m-Y h:i A', $final_submission_data->expected_date_of_completion);
+    $final_submission_rows[$final_submission_data->id] = array(
+        $creation_date,
+        $final_submission_data->contributor_name,
+        $final_submission_data->project_title,
+		$status,
+        $action
+    );
+}
+    /* check if there are any pending proposals */
+     //!$pending_rows
+    $final_submission_header = array(
+        'Date of Submission',
+        'Participant Name',
+        'Project title',
+		'Status',
+        'Actions'
+    );
+    //$output = theme_table($pending_header, $pending_rows);
+    $output .= theme('table', array(
+        'header' => $final_submission_header,
+        'rows' => $final_submission_rows
+    ));
+    return $output;
+}
+/************************** Submissions APPROVAL FORM ****************************/
+/******************************************************************************/
+function gui_hackathon_submissions_approval_form($form, &$form_state)
+{
+    global $user;
+	$proposal_id = (int) arg(2);
+    $query = db_select('gui_hackathon_final_submission');
+    $query->fields('gui_hackathon_final_submission');
+    $query->condition('id', $proposal_id);
+    $proposal_q = $query->execute();
+	$final_submission_data = $proposal_q->fetchObject();
+	if (!$final_submission_data)
+	{
+		drupal_set_message(t('Invalid submission selected. Please try again.'), 'error');
+		drupal_goto('gui-hackathon/review');
+		return;
+	} //!$final_submission_data
+	$form['contributor_name'] = array(
+        '#type' => 'item',
+        '#markup' => t($final_submission_data->contributor_name),
+        '#title' => t('Student name'),
+    );
+    $form['student_email_id'] = array(
+        '#title' => t('Student Email'),
+        '#type' => 'item',
+        '#markup' => user_load($final_submission_data->uid)->mail,
+        '#title' => t('Email'),
+    );
+    $form['contributor_contact_no'] = array(
+        '#title' => t('Contact No.'),
+        '#type' => 'item',
+        '#markup' => $final_submission_data->contact_no,
+    );
+	$form['project_title'] = array(
+		'#type' => 'item',
+		'#markup' => t($final_submission_data->project_title),
+		'#title' => t('Project title'),
+	);
+	$form['project_description'] = array(
+		'#type' => 'item',
+		'#markup' => t($final_submission_data->project_description),
+		'#title' => t('Project description'),
+	);
+	$form['uploaded_file'] = array(
+		'#type' => 'item',
+		'#markup' => l($final_submission_data->filename, 'gui-hackathon/download-submission/' . $final_submission_data->id),
+		'#title' => t('Uploaded file'),
+	);
+	$form['revisions'] = array(
+		'#type' => 'item',
+		'#markup' => t($final_submission_data->revision),
+		'#title' => t('Revision number'),
+	);
+	$form['submission_status'] = array(
+		'#type' => 'select',
+		'#title' => t('Submission Status'),
+		'#options' => array(
+			1 => t('Approved'),
+			2 => t('Marked for Resubmission'),
+			3 => t('Marked as Disapproved')
+		),
+		'#default_value' => $final_submission_data->approval_status,
+		'#required' => TRUE
+	);
+	$form['message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message to Participant'),
+    '#description' => t('This message will be sent to the participant regarding the status of their submission.'),
+    '#states' => array(
+        'visible' => array(
+            ':input[name="submission_status"]' => array('!value' => '1'),
+        ),
+        'required' => array(
+            ':input[name="submission_status"]' => array('!value' => '1'),
+        ),
+    ),
+);
+	$form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => t('Update Submission Status'),
+	);
+	return $form;
+}
+
+function gui_hackathon_submissions_approval_form_submit($form, &$form_state)
+{
+	global $user;
+	$proposal_id = (int) arg(2);
+	$approval_status = $form_state['values']['submission_status'];
+	$query = "UPDATE gui_hackathon_final_submission SET approval_status = :approval_status, approver_uid = :approver_uid, approval_date = :approval_date WHERE id = :id";
+	$args = array(
+		":approval_status" => $approval_status,
+		":approver_uid" => $user->uid,
+		":approval_date" => time(),
+		":id" => $proposal_id
+	);
+	$result = db_query($query, $args);
+	if ($result)
+	{
+		drupal_set_message(t('Submission status updated successfully.'), 'status');
+	}
+	else
+	{
+		drupal_set_message(t('Error updating submission status. Please try again.'), 'error');
+	}
+	// $query = db_select('gui_hackathon_final_submission');
+	// $query->fields('gui_hackathon_final_submission');
+	// $query->condition('id', $proposal_id);
+	// $proposal_q = $query->execute();	
+	$query = db_select('gui_hackathon_final_submission');
+    $query->fields('gui_hackathon_final_submission');
+    $query->condition('id', $proposal_id);
+    $proposal_q = $query->execute();
+	$final_submission_data = $proposal_q->fetchObject();
+	$user_registration_query = db_select('gui_hackathon_registration');
+	$user_registration_query->fields('gui_hackathon_registration');
+	$user_registration_query->condition('email', user_load($final_submission_data->uid)->mail);
+	$user_registration_query->orderBy('id', 'DESC');
+	$user_registration_query->range(0, 1);
+	$user_registration_q = $user_registration_query->execute();
+	$user_data = $user_registration_q->fetchObject();
+	$email_to = $user_data->email;
+	$form = variable_get('gui_hackathon_from_email', '');
+	$bcc = variable_get('gui_hackathon_emails', '');
+	$cc = variable_get('gui_hackathon_cc_emails', '');
+	$user = user_load($final_submission_data->uid);
+	//var_dump($user);die;
+	$params['gui_hackathon_final_submission']['submission_id'] = $proposal_id;
+	$params['gui_hackathon_final_submission']['user_id'] = $user->uid;
+	$params['gui_hackathon_final_submission']['approval_status'] = $approval_status;
+	$params['gui_hackathon_final_submission']['message'] = $form_state['values']['message'];
+	$params['gui_hackathon_final_submission']['headers'] = array(
+		'From' => $form,
+		'MIME-Version' => '1.0',
+		'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+		'Content-Transfer-Encoding' => '8Bit',
+		'X-Mailer' => 'Drupal',
+		'Cc' => $cc,
+		'Bcc' => $bcc
+	);
+	if (!drupal_mail('scilab_case_study', 'gui_hackathon_final_submission_review', $email_to, user_preferred_language($user), $params, $form, TRUE))
+		drupal_set_message('Error sending email message.', 'error');
+	drupal_goto('gui-hackathon/review');
+}
+
+/************************** Submissions edit FORM ****************************/
+
+function gui_hackathon_submissions_edit_form($form, &$form_state)
+{	
+	global $user;
+	$proposal_id = (int) arg(2);
+    $query = db_select('gui_hackathon_final_submission');
+    $query->fields('gui_hackathon_final_submission');
+    $query->condition('id', $proposal_id);
+    $proposal_q = $query->execute();
+	$final_submission_data = $proposal_q->fetchObject();
+	if (!$final_submission_data)
+	{
+		drupal_set_message(t('Invalid submission selected. Please try again.'), 'error');
+		drupal_goto('gui-hackathon/review');
+		return;
+	} //!$final_submission_data
+	$form['contributor_name'] = array(
+        '#type' => 'textfield',
+        '#default_value' => $final_submission_data->contributor_name,
+        '#title' => t('Student name'),
+		'#maxlength' => 250,
+    );
+    $form['student_email_id'] = array(
+        '#title' => t('Student Email'),
+        '#type' => 'item',
+        '#markup' => user_load($final_submission_data->uid)->mail,
+        '#title' => t('Email'),
+    );
+    $form['contributor_contact_no'] = array(
+        '#title' => t('Contact No.'),
+        '#type' => 'textfield',
+        '#default_value' => $final_submission_data->contact_no,
+		'#maxlength' => 10,
+    );
+	$form['project_title'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $final_submission_data->project_title,
+		'#title' => t('Project title'),
+	);
+	$form['project_description'] = array(
+		'#type' => 'textarea',
+		'#default_value' => $final_submission_data->project_description,
+		'#title' => t('Project description'),
+	);
+	
+	$form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => t('Update Submission Details'),
+	);
+	return $form;
+}
+function gui_hackathon_submissions_edit_form_submit($form, &$form_state)
+{
+	global $user;
+	$proposal_id = (int) arg(2);
+	//$approval_status = $form_state['values']['submission_status'];
+	$query = "UPDATE gui_hackathon_final_submission SET contributor_name = :contributor_name, contact_no = :contact_no, project_title = :project_title, project_description = :project_description WHERE id = :id";
+	$args = array(
+		":contributor_name" => $form_state['values']['contributor_name'],
+		":contact_no" => $form_state['values']['contributor_contact_no'],
+		":project_title" => $form_state['values']['project_title'],
+		":project_description" => $form_state['values']['project_description'],
+		":id" => $proposal_id
+	);
+	$result = db_query($query, $args);
+	if ($result)
+	{
+		drupal_set_message(t('Submission details updated successfully.'), 'status');
+	}
+	else
+	{
+		drupal_set_message(t('Error updating submission details. Please try again.'), 'error');
+	}
+	
+	drupal_goto('gui-hackathon/review');
+}
+
+
+function gui_hackathon_download_submission(){
+	$submission_id = (int) arg(2);
+	$query = db_select('gui_hackathon_final_submission');
+	$query->fields('gui_hackathon_final_submission');
+	$query->condition('id', $submission_id);
+	$proposal_q = $query->execute();
+	$final_submission_data = $proposal_q->fetchObject();
+	if (!$final_submission_data){
+		drupal_set_message(t('Invalid submission selected. Please try again.'), 'error');
+		drupal_goto('gui-hackathon/review');
+		return;
+	}
+	$root_path = gui_hackathon_submission_path();
+	$file_path = $root_path . $final_submission_data->filename;
+	if (file_exists($file_path)) {
+		// Set headers to force download	
+	header("Pragma: public");
+	header("Expires: 0");
+	header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+	header("Cache-Control: public");
+	header("Content-Description: File Transfer");
+	header("Content-Type: application/zip");
+	header('Content-disposition: attachment; filename="' . $final_submission_data->filename . '"');
+	header("Content-Length: " . filesize($root_path . $final_submission_data->filename));
+	header("Content-Transfer-Encoding: binary");
+	header("Expires: 0");
+	header("Pragma: no-cache");
+	readfile($root_path . $final_submission_data->filename);
+	ob_end_flush();
+	ob_clean();
+	} else {
+		drupal_set_message(t('The requested file does not exist.'), 'error');
+		drupal_goto('gui-hackathon/review');
+	}
+
 }
