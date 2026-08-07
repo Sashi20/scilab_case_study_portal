@@ -613,37 +613,51 @@ function gui_hackathon_submissions_edit_form_submit($form, &$form_state)
 
 function gui_hackathon_download_submission(){
 	$submission_id = (int) arg(2);
-	$query = db_select('gui_hackathon_final_submission');
-	$query->fields('gui_hackathon_final_submission');
-	$query->condition('id', $submission_id);
-	$proposal_q = $query->execute();
-	$final_submission_data = $proposal_q->fetchObject();
-	if (!$final_submission_data){
-		drupal_set_message(t('Invalid submission selected. Please try again.'), 'error');
-		drupal_goto('gui-hackathon/review');
-		return;
-	}
-	$root_path = gui_hackathon_submission_path();
-	$file_path = $root_path . $final_submission_data->filename;
-	if (file_exists($file_path)) {
-		// Set headers to force download	
-	header("Pragma: public");
-	header("Expires: 0");
-	header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-	header("Cache-Control: public");
-	header("Content-Description: File Transfer");
-	header("Content-Type: application/zip");
-	header('Content-disposition: attachment; filename="' . $final_submission_data->filename . '"');
-	header("Content-Length: " . filesize($root_path . $final_submission_data->filename));
-	header("Content-Transfer-Encoding: binary");
-	header("Expires: 0");
-	header("Pragma: no-cache");
-	readfile($root_path . $final_submission_data->filename);
-	ob_end_flush();
-	ob_clean();
-	} else {
-		drupal_set_message(t('The requested file does not exist.'), 'error');
-		drupal_goto('gui-hackathon/review');
-	}
+
+if (empty($submission_id)) {
+  drupal_set_message(t('Invalid submission ID.'), 'error');
+  drupal_goto('gui-hackathon/review');
+  return;
+}
+
+// Validate and fetch submission
+$query = db_select('gui_hackathon_final_submission', 's');
+$query->fields('s');
+$query->condition('s.id', $submission_id);
+$query->range(0, 1);
+
+$final_submission_data = $query->execute()->fetchObject();
+
+if (!$final_submission_data) {
+  drupal_set_message(t('Invalid submission selected. Please try again.'), 'error');
+  drupal_goto('gui-hackathon/review');
+  return;
+}
+
+// Sanitize filename and path
+$filename = basename($final_submission_data->filename); // Prevent path traversal
+$root_path = gui_hackathon_submission_path();
+$file_path = $root_path . $filename;
+
+// Verify file exists and is within allowed directory
+if (!file_exists($file_path) || !is_file($file_path)) {
+  drupal_set_message(t('File not found.'), 'error');
+  drupal_goto('gui-hackathon/review');
+  return;
+}
+
+// Use Drupal's file delivery
+$headers = array(
+  'Content-Type' => 'application/zip',
+  'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+  'Content-Length' => filesize($file_path),
+  'Cache-Control' => 'private, no-cache, no-store, must-revalidate',
+  'Pragma' => 'no-cache',
+  'Expires' => '0',
+);
+
+drupal_send_headers($headers);
+readfile($file_path);
+drupal_exit(); // Critical: Terminate script after file delivery
 
 }
